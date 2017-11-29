@@ -37,18 +37,23 @@ int main(int argc, char** argv)
   auto robot_model = robot_model_loader.getModel();
 
   // Create move_group for entire robot
-  static const std::string PLANNING_GROUP = "robot_bioik";
+  static const std::string PLANNING_GROUP = "gantry_with_manipulator";
   auto joint_model_group_robot =
       robot_model->getJointModelGroup(PLANNING_GROUP);
   moveit::planning_interface::MoveGroupInterface move_group_robot(
       PLANNING_GROUP);
+
+  // Slow down movements from maximum
+  move_group_robot.setMaxVelocityScalingFactor(0.05);
+  move_group_robot.setMaxAccelerationScalingFactor(0.05);
 
   // Move both manipulators to home position
   move_group_robot.setNamedTarget("home");
 
   // Create and show plan in rviz
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  bool success = move_group_robot.plan(my_plan);
+  bool success;
+  success = move_group_robot.plan(my_plan);
   ROS_INFO("Visualizing plan 1 (named goal) %s", success ? "" : "FAILED");
 
   // Visualizing plans
@@ -60,21 +65,30 @@ int main(int argc, char** argv)
   visual_tools.trigger();
 
   // Wait for user input before proceding
-  visual_tools.prompt("next step");
+  visual_tools.prompt("Execute next step");
 
   // Excute the planed move
   move_group_robot.execute(my_plan);
+  // Wait for user input before proceding
+  visual_tools.prompt("Plan next step");
+
 
   // Load planning group just for gantry
   moveit::planning_interface::MoveGroupInterface move_group(
       "gantry_with_manipulator");
   auto joint_model_group =
       robot_model->getJointModelGroup("gantry_with_manipulator");
-//  move_group.setPlannerId("LazyPRMstarkConfigDefault");
+  //  move_group.setPlannerId("LazyPRMstarkConfigDefault");
+
+  // Slow down robot movement
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.05);
 
   // Point tool towards work surface
   std::vector<double> joint_values = move_group.getCurrentJointValues();
-  joint_values[7] = -1.5708;
+  joint_values[0] = 1.54 / 2; // Stop at the center of E1 axis
+  joint_values[8] = 1.5708; // Move cables out of joint
+  joint_values[7] = -1.5708; // Point tool towards the floor
   move_group.setJointValueTarget(joint_values);
   move_group.plan(my_plan);
 
@@ -85,10 +99,13 @@ int main(int argc, char** argv)
   visual_tools.trigger();
 
   // Wait for user input before proceding
-  visual_tools.prompt("next step");
+  visual_tools.prompt("Execute next step");
 
   // Excute the planed move
   move_group_robot.execute(my_plan);
+  // Wait for user input before proceding
+  visual_tools.prompt("Plan next step");
+
 
   // Increase planning time due to more complex path
   move_group.setPlanningTime(10.0);
@@ -102,22 +119,38 @@ int main(int argc, char** argv)
   ocm.header.frame_id = "root";
   ocm.absolute_x_axis_tolerance = 0.1;
   ocm.absolute_y_axis_tolerance = 0.1;
-  ocm.absolute_z_axis_tolerance = 2*3.1415;
+  ocm.absolute_z_axis_tolerance = 2*3.1415; // Allow rotation around Z axis of tool
+  ocm.weight = 1.0;
+
+
+  // Limit E1 axis movement
+  // [position - tolerance_below, position + tolerance_above]
+  moveit_msgs::JointConstraint jcm;
+  jcm.joint_name = "gantry_joint_e1";
+  jcm.position = 1.54 / 2; // Middle of rail
+  jcm.tolerance_above = 0.6;
+  jcm.tolerance_below = 0.6;
   ocm.weight = 1.0;
 
   // Now, set it as the path constraint for the group.
   moveit_msgs::Constraints test_constraints;
   test_constraints.orientation_constraints.push_back(ocm);
+  test_constraints.joint_constraints.push_back(jcm);
+
+  // Slow down robot movement
+  move_group.setMaxVelocityScalingFactor(0.01);
+  move_group.setMaxAccelerationScalingFactor(0.01);
 
 
+  // Create vector for holding all cartesian waypoints
   std::vector<geometry_msgs::Pose> waypoints;
   geometry_msgs::Pose start_pose = move_group.getCurrentPose().pose;
   geometry_msgs::Pose target_pose;
   // Add current pose as starting point
-  waypoints.push_back(start_pose);
+  //waypoints.push_back(start_pose);
 
   double height = 1.0;
-  double width = 1.0;
+  double width = 0.8;
   int layers = 5;
 
   // Create spiral
@@ -146,15 +179,14 @@ int main(int argc, char** argv)
   // via a scaling factor
   // of the maxiumum speed of each joint. Note this is not the speed of the end
   // effector point.
-  move_group.setMaxVelocityScalingFactor(0.1);
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   moveit_msgs::RobotTrajectory trajectory_msg;
   double fraction = move_group.computeCartesianPath(waypoints,
                                                     0.01, // eef_step
-                                                    5,  // jump_threshold
+                                                    3,  // jump_threshold
                                                     trajectory_msg,
                                                     test_constraints,
-                                                    true);
+                                                    true); // Check for collision and constraints
 
   // The trajectory needs to be modified so it will include velocities as well.
   // First to create a RobotTrajectory object
@@ -169,7 +201,11 @@ int main(int argc, char** argv)
   trajectory_processing::IterativeParabolicTimeParameterization iptp;
 
   // Fourth compute computeTimeStamps
-  success = iptp.computeTimeStamps(robot_trajectory);
+  //
+  success = iptp.computeTimeStamps(robot_trajectory, // Trajectory to compute time stamps for
+                                    0.01, // Max velocity scaling factor
+                                    0.01);  // Max acceleration scaling factor
+                                    
   ROS_INFO("Computed time stamp %s", success ? "SUCCEDED" : "FAILED");
 
   // Get RobotTrajectory_msg from RobotTrajectory
@@ -187,9 +223,12 @@ int main(int argc, char** argv)
     visual_tools.publishAxisLabeled(waypoints[i], "pt" + std::to_string(i),
                                     rviz_visual_tools::SMALL);
   visual_tools.trigger();
-  visual_tools.prompt("next step");
+  visual_tools.prompt("Execute next step");
 
   move_group.execute(plan);
+  // Wait for user input before proceding
+  visual_tools.prompt("Plan next step");
+
 
   visual_tools.deleteAllMarkers();
   visual_tools.trigger();

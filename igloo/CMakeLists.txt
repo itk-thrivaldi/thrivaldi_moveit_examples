@@ -99,10 +99,10 @@ find_package(catkin REQUIRED roscpp moveit_core bio_ik moveit_ros_planning_inter
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES igloo
   CATKIN_DEPENDS roscpp moveit_core bio_ik moveit_ros_planning_interface moveit_visual_tools
-  DEPENDS system_lib
+#  DEPENDS system_lib
 )
 
 ###########
