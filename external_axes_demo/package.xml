@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>external_axes_demo</name>
+  <version>0.0.1</version>
+  <description>Demonstrate movement with external axes</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="ivareri@stud.ntnu.no">ivareri</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>Apache 2</license>
+
+  <depend>roscpp</depend>
+  <depend>moveit_core</depend>
+  <depend>bio_ik</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_visual_tools</depend>
+  <buildtool_depend>catkin</buildtool_depend>
+
+ <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
