@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ntnu_moveit_examples</name>
+  <name>thrivaldi_examples</name>
   <version>0.0.0</version>
-  <description>The ntnu_moveit_examples package</description>
+  <description>Various useage examples for Thrivaldi</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
