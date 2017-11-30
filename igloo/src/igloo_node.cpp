@@ -38,22 +38,22 @@ int main(int argc, char** argv)
 
   // Create move_group for entire robot
   static const std::string PLANNING_GROUP = "gantry_with_manipulator";
-  auto joint_model_group_robot =
+  auto joint_model_group =
       robot_model->getJointModelGroup(PLANNING_GROUP);
-  moveit::planning_interface::MoveGroupInterface move_group_robot(
+  moveit::planning_interface::MoveGroupInterface move_group(
       PLANNING_GROUP);
 
   // Slow down movements from maximum
-  move_group_robot.setMaxVelocityScalingFactor(0.05);
-  move_group_robot.setMaxAccelerationScalingFactor(0.05);
+  move_group.setMaxVelocityScalingFactor(0.05);
+  move_group.setMaxAccelerationScalingFactor(0.05);
 
   // Move both manipulators to home position
-  move_group_robot.setNamedTarget("home");
+  move_group.setNamedTarget("home");
 
   // Create and show plan in rviz
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
   bool success;
-  success = move_group_robot.plan(my_plan);
+  success = move_group.plan(my_plan);
   ROS_INFO("Visualizing plan 1 (named goal) %s", success ? "" : "FAILED");
 
   // Visualizing plans
@@ -61,28 +61,17 @@ int main(int argc, char** argv)
   // We can also visualize the plan as a line with markers in Rviz.
 
   visual_tools.publishTrajectoryLine(my_plan.trajectory_,
-                                     joint_model_group_robot);
+                                     joint_model_group);
   visual_tools.trigger();
 
   // Wait for user input before proceding
   visual_tools.prompt("Execute next step");
 
   // Excute the planed move
-  move_group_robot.execute(my_plan);
+  move_group.execute(my_plan);
   // Wait for user input before proceding
   visual_tools.prompt("Plan next step");
 
-
-  // Load planning group just for gantry
-  moveit::planning_interface::MoveGroupInterface move_group(
-      "gantry_with_manipulator");
-  auto joint_model_group =
-      robot_model->getJointModelGroup("gantry_with_manipulator");
-  //  move_group.setPlannerId("LazyPRMstarkConfigDefault");
-
-  // Slow down robot movement
-  move_group.setMaxVelocityScalingFactor(0.05);
-  move_group.setMaxAccelerationScalingFactor(0.05);
 
   // Point tool towards work surface
   std::vector<double> joint_values = move_group.getCurrentJointValues();
@@ -95,14 +84,14 @@ int main(int argc, char** argv)
   // Show trajectory line
   visual_tools.deleteAllMarkers();
   visual_tools.publishTrajectoryLine(my_plan.trajectory_,
-                                     joint_model_group_robot);
+                                     joint_model_group);
   visual_tools.trigger();
 
   // Wait for user input before proceding
   visual_tools.prompt("Execute next step");
 
   // Excute the planed move
-  move_group_robot.execute(my_plan);
+  move_group.execute(my_plan);
   // Wait for user input before proceding
   visual_tools.prompt("Plan next step");
 
@@ -149,13 +138,17 @@ int main(int argc, char** argv)
   // Add current pose as starting point
   //waypoints.push_back(start_pose);
 
-  double height = 1.0;
-  double width = 0.8;
-  int layers = 5;
+  double height = 0.5;
+  double width = 0.6;
+  int layers = 4;
 
   // Create spiral
   for (auto z = 0; z < layers; ++z)
   {
+    double current_layer_width = width - (width * double(z) / layers);
+    double next_layer_width =  width - (width * double(z+1) / layers);
+    double current_layer_diff = current_layer_width - next_layer_width;
+
     for (auto i = 0; i < 360; ++i)
     {
       target_pose.orientation = start_pose.orientation;
@@ -163,8 +156,7 @@ int main(int argc, char** argv)
                                double(z) * height / layers +
                                i * (height / layers) / 360;
       std::complex<double> position =
-          std::polar(width - (double(z) / layers) - i * (width / layers) / 360,
-                     double(i) * 0.0174533);
+          std::polar(current_layer_width - (current_layer_diff * i / 360), double(i) * 0.0174533);
       target_pose.position.y = start_pose.position.y + position.real();
       target_pose.position.x = start_pose.position.x + position.imag();
       waypoints.push_back(target_pose);
@@ -203,8 +195,8 @@ int main(int argc, char** argv)
   // Fourth compute computeTimeStamps
   //
   success = iptp.computeTimeStamps(robot_trajectory, // Trajectory to compute time stamps for
-                                    0.01, // Max velocity scaling factor
-                                    0.01);  // Max acceleration scaling factor
+                                    0.05, // Max velocity scaling factor
+                                    0.05);  // Max acceleration scaling factor
                                     
   ROS_INFO("Computed time stamp %s", success ? "SUCCEDED" : "FAILED");
 
