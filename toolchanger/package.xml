@@ -2,7 +2,7 @@
 <package format="2">
   <name>toolchanger</name>
   <version>0.0.0</version>
-  <description>The toolchanger package</description>
+  <description>Demonstartion using the toolchanger node from kuka_kvp_hw_interface</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
