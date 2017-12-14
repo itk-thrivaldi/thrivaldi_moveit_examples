@@ -7,7 +7,11 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED roscpp moveit_core bio_ik moveit_ros_planning_interface moveit_visual_tools)
+find_package(catkin REQUIRED 
+	roscpp 
+	moveit_core 
+	moveit_ros_planning_interface 
+	moveit_visual_tools)
 
 ###################################
 ## catkin specific configuration ##
@@ -20,7 +24,11 @@ find_package(catkin REQUIRED roscpp moveit_core bio_ik moveit_ros_planning_inter
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
 catkin_package(
-  CATKIN_DEPENDS roscpp moveit_core bio_ik moveit_ros_planning_interface moveit_visual_tools
+  CATKIN_DEPENDS
+	roscpp 
+	moveit_core 
+	moveit_ros_planning_interface 
+	moveit_visual_tools
 )
 
 ###########
