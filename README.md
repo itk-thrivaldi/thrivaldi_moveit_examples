@@ -1,5 +1,5 @@
-# thrivaldi_examples
-Usage examples for Thrivaldi
+# thrivaldi_moveit_examples
+Usage examples for Thrivaldi. This repository was formerly known as `thrivaldi_examples`. To showcase simpler, non-moveit related examples, this was renamed `thrivaldi_moveit_examples` and [thrivaldi_examples](https://github.com/itk-thrivaldi/thrivaldi_examples) now contains no moveit dependencies.
 
 ## Installation
 
