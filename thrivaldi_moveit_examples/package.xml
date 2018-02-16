@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>thrivaldi_examples</name>
+  <name>thrivaldi_moveit_examples</name>
   <version>0.0.0</version>
   <description>Various useage examples for Thrivaldi</description>
 
