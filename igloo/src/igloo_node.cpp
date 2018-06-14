@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   // Create and show plan in rviz
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
   bool success;
-  success = move_group.plan(my_plan);
+  success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
   ROS_INFO("Visualizing plan 1 (named goal) %s", success ? "" : "FAILED");
 
   // Visualizing plans

@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   
     moveit::planning_interface::MoveGroup::Plan plan;
     group.setJointValueTarget((i%2) ? pos1 : pos2);
-    bool success = group.plan(plan);
+    bool success = (group.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     
     if (!success) {
 	std::cout << "Failed to plan path" << std::endl;

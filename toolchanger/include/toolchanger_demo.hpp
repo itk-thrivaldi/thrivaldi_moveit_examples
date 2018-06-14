@@ -148,7 +148,7 @@ public:
       visual_tools.prompt("Execute move");
 
     // Excute the planed move
-    return move_group.execute(my_plan);
+    return move_group.execute(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
   }
 
   bool planAndExecuteMotion(std::string target, double scalingFactor = 1)
@@ -174,7 +174,7 @@ public:
       visual_tools.prompt("Execute move");
 
     // Excute the planed move
-    return move_group.execute(my_plan);
+    return move_group.execute(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
   }
 
 };  // class
